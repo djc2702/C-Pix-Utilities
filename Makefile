@@ -22,9 +22,9 @@ lodepng_code:
 
 bmp_code:
 	$(MAKE) -C bmp
-		
+
 clean:
-	$(MAKE) -C lodepng clean	
+	$(MAKE) -C lodepng clean
 	$(MAKE) -C bmp clean
 	rm *.o
 	rm transform
