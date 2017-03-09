@@ -115,9 +115,18 @@ plugin *plugin_parse(char *argv[] ,int *iptr){
 	}
 	if(!strcmp(argv[i]+2,"convolution")){
 		new->function=convolution;
-		// new->data=malloc(3 * sizeof(void*));
-		// new->data[0] = malloc(9 * sizeof(rgba));
-		//
+		 new->data=malloc(3 * sizeof(int[3]));
+		 int (*kernel)[3] = (int(*)[3]) new->data;
+		 int i = *iptr;
+		 kernel[0][0]=atoi(argv[i+1]);
+		 kernel[0][1]=atoi(argv[i+2]);
+		 kernel[0][2]=atoi(argv[i+3]);
+		 kernel[1][0]=atoi(argv[i+4]);
+		 kernel[1][1]=atoi(argv[i+5]);
+		 kernel[1][2]=atoi(argv[i+6]);
+		 kernel[2][0]=atoi(argv[i+7]);
+		 kernel[2][1]=atoi(argv[i+8]);
+		 kernel[2][2]=atoi(argv[i+9]);
 		*iptr=i+10;
 		return new;
 	}
@@ -160,7 +169,36 @@ static void convolution(pixMap *p, pixMap *oldPixMap,int i, int j,void *data){
 	//implement algorithm givne in https://en.wikipedia.org/wiki/Kernel_(imagehttps://s-media-cache-ak0.pinimg.com/736x/e6/67/9f/e6679ff79c8e062ff9cc73dea0a3b67b.jpg_processing)
 	//assume that the kernel is a 3x3 matrix of integers
 	//don't forget to normalize by dividing by the sum of all the elements in the matrix
-//	rgba *kernel[][]=(rgba*) data;
+		int (*kernel)[3] = (int(*)[3]) data;
+		int acc = 0; //acccumulator
+
+		// for (int kr = 0; kr < 3; k++) { // for each row in kernel
+		// 	for (int ke = 0; ke < 3; k++) {  // for each kernel element in row
+		//
+		// 	}
+		// }
+		int minusi, plusi, minusj, plusj;
+		minusi = (i == 0) ? 1: i - 1;
+		plusi = (i == oldPixMap->imageHeight)  ? (oldPixMap->imageHeight - 1): i + 1;
+		minusj = (j == 0) ? 1: j - 1;
+		plusj = (j == oldPixMap->imageWidth) ? (oldPixMap->imageWidth - 1): j + 1;
+		acc += (kernel[0][0] * oldPixMap->pixArray_overlay[minusi][minusj]);
+		acc += (kernel[0][1] * oldPixMap->pixArray_overlay[minusi][j]);
+		acc += (kernel[0][2] * oldPixMap->pixArray_overlay[minusi][plusj]);
+		acc += (kernel[1][0] * oldPixMap->pixArray_overlay[i][minusj]);
+		acc += (kernel[1][1] * oldPixMap->pixArray_overlay[i][j]);
+		acc += (kernel[1][2] * oldPixMap->pixArray_overlay[i][plusj]);
+		acc += (kernel[2][0] * oldPixMap->pixArray_overlay[plusi][minusj]);
+		acc += (kernel[2][1] * oldPixMap->pixArray_overlay[plusi][j]);
+		acc += (kernel[2][2] * oldPixMap->pixArray_overlay[plusi][plusj]);
+		int sum = 0;
+		for (int k = 0; k < 3; k++) {
+			for int l = 0; l < 3; l++) {
+				sum += kernel[k][l];
+			}
+		}
+		acc = acc / sum;
+		p->pixArray_overlay[i][j] = acc;
 }
 
 //very simple functions - does not use the data pointer - good place to start
