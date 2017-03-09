@@ -170,35 +170,39 @@ static void convolution(pixMap *p, pixMap *oldPixMap,int i, int j,void *data){
 	//assume that the kernel is a 3x3 matrix of integers
 	//don't forget to normalize by dividing by the sum of all the elements in the matrix
 		int (*kernel)[3] = (int(*)[3]) data;
-		int acc = 0; //acccumulator
+		int redacc = 0; //acccumulators
+		int greenacc = 0;
+		int blueacc = 0;
+		int alphaacc = 0;
 
-		// for (int kr = 0; kr < 3; k++) { // for each row in kernel
-		// 	for (int ke = 0; ke < 3; k++) {  // for each kernel element in row
-		//
-		// 	}
-		// }
-		int minusi, plusi, minusj, plusj;
-		minusi = (i == 0) ? 1: i - 1;
-		plusi = (i == oldPixMap->imageHeight)  ? (oldPixMap->imageHeight - 1): i + 1;
-		minusj = (j == 0) ? 1: j - 1;
-		plusj = (j == oldPixMap->imageWidth) ? (oldPixMap->imageWidth - 1): j + 1;
-		acc += (kernel[0][0] * oldPixMap->pixArray_overlay[minusi][minusj]);
-		acc += (kernel[0][1] * oldPixMap->pixArray_overlay[minusi][j]);
-		acc += (kernel[0][2] * oldPixMap->pixArray_overlay[minusi][plusj]);
-		acc += (kernel[1][0] * oldPixMap->pixArray_overlay[i][minusj]);
-		acc += (kernel[1][1] * oldPixMap->pixArray_overlay[i][j]);
-		acc += (kernel[1][2] * oldPixMap->pixArray_overlay[i][plusj]);
-		acc += (kernel[2][0] * oldPixMap->pixArray_overlay[plusi][minusj]);
-		acc += (kernel[2][1] * oldPixMap->pixArray_overlay[plusi][j]);
-		acc += (kernel[2][2] * oldPixMap->pixArray_overlay[plusi][plusj]);
 		int sum = 0;
 		for (int k = 0; k < 3; k++) {
-			for int l = 0; l < 3; l++) {
+			for (int l = 0; l < 3; l++) {
 				sum += kernel[k][l];
-			}
-		}
-		acc = acc / sum;
-		p->pixArray_overlay[i][j] = acc;
+				if (i > 1 && i < oldPixMap->imageHeight - 1 && j > 1 && j < oldPixMap->imageWidth - 1) {
+					i = i + (k - 1);
+					j = j + (l - 1);
+				} else {
+					if (i <= 1) i = i + 2 + (k - 1);
+					if (i >= oldPixMap->imageHeight - 1) i = (oldPixMap->imageHeight - 2) + (k - 1);
+					if (j <= 1) j = j + 2 + (l - 1);
+					if (j >= oldPixMap->imageWidth - 1) j = (oldPixMap->imageWidth - 2) + (l - 1);
+				}
+					redacc += (kernel[k][l] * (unsigned int) (oldPixMap->pixArray_overlay[i][j]).r);
+					greenacc += (kernel[k][l] * (unsigned int) (oldPixMap->pixArray_overlay[i][j]).g);
+					blueacc += (kernel[k][l] * (unsigned int) (oldPixMap->pixArray_overlay[i][j]).b);
+					alphaacc += (kernel[k][l] * (unsigned int) (oldPixMap->pixArray_overlay[i][j]).a);
+
+			} // end inner kernel for
+		} // end outer kernel for
+		redacc = redacc / sum;
+		greenacc = greenacc / sum;
+		blueacc =  blueacc / sum;
+		alphaacc = alphaacc / sum;
+		p->pixArray_overlay[i][j].r = redacc;
+		p->pixArray_overlay[i][j].g = greenacc;
+		p->pixArray_overlay[i][j].b = blueacc;
+		p->pixArray_overlay[i][j].a = alphaacc;
 }
 
 //very simple functions - does not use the data pointer - good place to start
