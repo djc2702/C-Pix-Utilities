@@ -89,6 +89,10 @@ int pixMap_write_bmp16(pixMap *p,char *filename){
 }
 void plugin_destroy(plugin **plug){
 	//free the allocated memory and set *plug to zero (NULL)
+	plugin *ptr = *plug;
+	if (ptr->data) free(ptr->data);
+	if (*plug) free(*plug);
+	*plug = 0;
 }
 
 plugin *plugin_parse(char *argv[] ,int *iptr){
@@ -106,17 +110,19 @@ plugin *plugin_parse(char *argv[] ,int *iptr){
 		float theta=atof(argv[i+1]);
 		sc[0]=sin(degreesToRadians(-theta));
 		sc[1]=cos(degreesToRadians(-theta));
-		//code goes here
 		*iptr=i+2;
 		return new;
 	}
 	if(!strcmp(argv[i]+2,"convolution")){
-		//code goes here
+		new->function=convolution;
+		// new->data=malloc(3 * sizeof(void*));
+		// new->data[0] = malloc(9 * sizeof(rgba));
+		//
 		*iptr=i+10;
 		return new;
 	}
 	if(!strcmp(argv[i]+2,"flipHorizontal")){
-		//code goes here
+		new->function=flipHorizontal;
 		*iptr=i+1;
 		return new;
 	}
@@ -151,21 +157,21 @@ static void rotate(pixMap *p, pixMap *oldPixMap,int i, int j,void *data){
 }
 
 static void convolution(pixMap *p, pixMap *oldPixMap,int i, int j,void *data){
-	//implement algorithm givne in https://en.wikipedia.org/wiki/Kernel_(image_processing)
+	//implement algorithm givne in https://en.wikipedia.org/wiki/Kernel_(imagehttps://s-media-cache-ak0.pinimg.com/736x/e6/67/9f/e6679ff79c8e062ff9cc73dea0a3b67b.jpg_processing)
 	//assume that the kernel is a 3x3 matrix of integers
 	//don't forget to normalize by dividing by the sum of all the elements in the matrix
+//	rgba *kernel[][]=(rgba*) data;
 }
 
 //very simple functions - does not use the data pointer - good place to start
 
 static void flipVertical(pixMap *p, pixMap *oldPixMap,int i, int j,void *data){
 	//reverse the pixels vertically - can be done in one line
-	for (int i = 0; i < oldPixMap->imageHeight; i++) {
-		memcpy(p->pixArray_overlay[i], oldPixMap->pixArray_overlay[oldPixMap->imageWidth - i - 1], oldPixMap->imageHeight * sizeof(rgba));
-	}
+	memcpy(p->pixArray_overlay[i], oldPixMap->pixArray_overlay[oldPixMap->imageHeight - i - 1], oldPixMap->imageWidth * sizeof(rgba));
 }
 
 static void flipHorizontal(pixMap *p, pixMap *oldPixMap,int i, int j,void *data){
 	//reverse the pixels horizontally - can be done in one line
+	memcpy(&(p->pixArray_overlay[i][j]), &(oldPixMap->pixArray_overlay[i][oldPixMap->imageWidth - j - 1]), sizeof(rgba));
 
 }
