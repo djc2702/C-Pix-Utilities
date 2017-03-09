@@ -115,18 +115,18 @@ plugin *plugin_parse(char *argv[] ,int *iptr){
 	}
 	if(!strcmp(argv[i]+2,"convolution")){
 		new->function=convolution;
-		 new->data=malloc(3 * sizeof(int[3]));
-		 int (*kernel)[3] = (int(*)[3]) new->data;
-		 int i = *iptr;
-		 kernel[0][0]=atoi(argv[i+1]);
-		 kernel[0][1]=atoi(argv[i+2]);
-		 kernel[0][2]=atoi(argv[i+3]);
-		 kernel[1][0]=atoi(argv[i+4]);
-		 kernel[1][1]=atoi(argv[i+5]);
-		 kernel[1][2]=atoi(argv[i+6]);
-		 kernel[2][0]=atoi(argv[i+7]);
-		 kernel[2][1]=atoi(argv[i+8]);
-		 kernel[2][2]=atoi(argv[i+9]);
+		new->data=malloc(3 * sizeof(int[3]));
+		int (*kernel)[3] = (int(*)[3]) new->data;
+		int i = *iptr;
+		kernel[0][0]=atoi(argv[i+1]);
+		kernel[0][1]=atoi(argv[i+2]);
+		kernel[0][2]=atoi(argv[i+3]);
+		kernel[1][0]=atoi(argv[i+4]);
+		kernel[1][1]=atoi(argv[i+5]);
+		kernel[1][2]=atoi(argv[i+6]);
+		kernel[2][0]=atoi(argv[i+7]);
+		kernel[2][1]=atoi(argv[i+8]);
+		kernel[2][2]=atoi(argv[i+9]);
 		*iptr=i+10;
 		return new;
 	}
@@ -169,40 +169,41 @@ static void convolution(pixMap *p, pixMap *oldPixMap,int i, int j,void *data){
 	//implement algorithm givne in https://en.wikipedia.org/wiki/Kernel_(imagehttps://s-media-cache-ak0.pinimg.com/736x/e6/67/9f/e6679ff79c8e062ff9cc73dea0a3b67b.jpg_processing)
 	//assume that the kernel is a 3x3 matrix of integers
 	//don't forget to normalize by dividing by the sum of all the elements in the matrix
-		int (*kernel)[3] = (int(*)[3]) data;
-		int redacc = 0; //acccumulators
-		int greenacc = 0;
-		int blueacc = 0;
-		int alphaacc = 0;
+	int (*kernel)[3] = (int(*)[3]) data;
+	int redacc = 0; //acccumulators
+	int greenacc = 0;
+	int blueacc = 0;
+	int alphaacc = 0;
 
-		int sum = 0;
-		for (int k = 0; k < 3; k++) {
-			for (int l = 0; l < 3; l++) {
-				sum += kernel[k][l];
-				if (i > 1 && i < oldPixMap->imageHeight - 1 && j > 1 && j < oldPixMap->imageWidth - 1) {
-					i = i + (k - 1);
-					j = j + (l - 1);
-				} else {
-					if (i <= 1) i = i + 2 + (k - 1);
-					if (i >= oldPixMap->imageHeight - 1) i = (oldPixMap->imageHeight - 2) + (k - 1);
-					if (j <= 1) j = j + 2 + (l - 1);
-					if (j >= oldPixMap->imageWidth - 1) j = (oldPixMap->imageWidth - 2) + (l - 1);
-				}
-					redacc += (kernel[k][l] * (unsigned int) (oldPixMap->pixArray_overlay[i][j]).r);
-					greenacc += (kernel[k][l] * (unsigned int) (oldPixMap->pixArray_overlay[i][j]).g);
-					blueacc += (kernel[k][l] * (unsigned int) (oldPixMap->pixArray_overlay[i][j]).b);
-					alphaacc += (kernel[k][l] * (unsigned int) (oldPixMap->pixArray_overlay[i][j]).a);
-
-			} // end inner kernel for
-		} // end outer kernel for
+	int sum = 0;
+	for (int k = 0; k < 3; k++) {
+		for (int l = 0; l < 3; l++) {
+			sum += kernel[k][l];
+			if (i > 1 && i < oldPixMap->imageHeight - 1 && j > 1 && j < oldPixMap->imageWidth - 1) {
+				i = i + (k - 1);
+				j = j + (l - 1);
+			} else {
+				if (i <= 1) i = i + 2 + (k - 1);
+				if (i >= oldPixMap->imageHeight - 1) i = (oldPixMap->imageHeight - 2) + (k - 1);
+				if (j <= 1) j = j + 2 + (l - 1);
+				if (j >= oldPixMap->imageWidth - 1) j = (oldPixMap->imageWidth - 2) + (l - 1);
+			}
+			redacc += (kernel[k][l] * (unsigned int) (oldPixMap->pixArray_overlay[i][j]).r);
+			greenacc += (kernel[k][l] * (unsigned int) (oldPixMap->pixArray_overlay[i][j]).g);
+			blueacc += (kernel[k][l] * (unsigned int) (oldPixMap->pixArray_overlay[i][j]).b);
+			alphaacc += (kernel[k][l] * (unsigned int) (oldPixMap->pixArray_overlay[i][j]).a);
+		} // end inner kernel for
+	} // end outer kernel for
+	if (sum > 1) { // normalize if the kernel elements add to more than 1
 		redacc = redacc / sum;
 		greenacc = greenacc / sum;
 		blueacc =  blueacc / sum;
 		alphaacc = alphaacc / sum;
-		p->pixArray_overlay[i][j].r = redacc;
-		p->pixArray_overlay[i][j].g = greenacc;
-		p->pixArray_overlay[i][j].b = blueacc;
-		p->pixArray_overlay[i][j].a = alphaacc;
+	}
+	p->pixArray_overlay[i][j].r = redacc;
+	p->pixArray_overlay[i][j].g = greenacc;
+	p->pixArray_overlay[i][j].b = blueacc;
+	p->pixArray_overlay[i][j].a = alphaacc;
 }
 
 //very simple functions - does not use the data pointer - good place to start
