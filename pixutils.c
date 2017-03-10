@@ -248,15 +248,11 @@ static void convolution(pixMap *p, pixMap *oldPixMap,int i, int j,void *data){
 	p->pixArray_overlay[i][j].a = alphaacc;
 }
 
-//very simple functions - does not use the data pointer - good place to start
-
 static void flipVertical(pixMap *p, pixMap *oldPixMap,int i, int j,void *data){
-	//reverse the pixels vertically - can be done in one line
 	memcpy(p->pixArray_overlay[i], oldPixMap->pixArray_overlay[oldPixMap->imageHeight - i - 1], oldPixMap->imageWidth * sizeof(rgba));
 }
 
 static void flipHorizontal(pixMap *p, pixMap *oldPixMap,int i, int j,void *data){
-	//reverse the pixels horizontally - can be done in one line
 	memcpy(&(p->pixArray_overlay[i][j]), &(oldPixMap->pixArray_overlay[i][oldPixMap->imageWidth - j - 1]), sizeof(rgba));
 
 }
