@@ -82,6 +82,39 @@ int pixMap_write_bmp16(pixMap *p,char *filename){
 
 	//However pixMap and BMP16_map are "upside down" relative to each other
 	//need to flip one of the the row indices when copying
+  for (int i = 0; i < p->imageWidth; i++) {
+		for (int j = 0; j < p-> imageHeight; j++) {
+			uint16_t r16 = (p->pixArray_overlay[p->imageHeight - i - 1][j]).r;
+      uint16_t g16 = (p->pixArray_overlay[p->imageHeight - i - 1][j]).g;
+      uint16_t b16 = (p->pixArray_overlay[p->imageHeight - i - 1][j]).b;
+
+			//000000000 RRRRRrrr
+			//&
+			//000000000 11111000
+			// gives
+			//000000000 RRRRR000 << 8
+			//RRRRRR000 00000000
+			r16 = (r16 & 0xF8) << 8;
+
+			//000000000 GGGGGGgg
+			//&
+			//00000000 11111100
+			//gives
+			//00000000 GGGGGG00 << 3
+			//00000GGG GGG00000
+      g16 = (g16 & 0xFC) << 3;
+
+			//00000000 BBBBBbbb
+			//&
+			//00000000 11111000
+			//gives
+			//00000000 BBBBB000 >> 3
+			//00000000 000BBBBB
+      b16 = (b16 & 0xF8) >> 3;
+
+			bmp16->pixArray[i][j] = r16 | g16 | b16;
+		}
+	}
 
 	BMP16map_write(bmp16,filename);
 	BMP16map_destroy(&bmp16);
