@@ -78,10 +78,6 @@ int pixMap_write_bmp16(pixMap *p,char *filename){
 	BMP16map *bmp16=BMP16map_init(p->imageHeight,p->imageWidth,0,5,6,5); //initialize the bmp type
 	if(!bmp16) return 1;
 
-	//bmp16->pixArray[i][j] is 2-d array for bmp files. It is analogous to the one for our png file pixMaps except that it is 16 bits
-
-	//However pixMap and BMP16_map are "upside down" relative to each other
-	//need to flip one of the the row indices when copying
   for (int i = 0; i < p->imageWidth; i++) {
 		for (int j = 0; j < p-> imageHeight; j++) {
 			uint16_t r16 = (p->pixArray_overlay[p->imageHeight - i - 1][j]).r;
@@ -91,7 +87,7 @@ int pixMap_write_bmp16(pixMap *p,char *filename){
 			//000000000 RRRRRrrr
 			//&
 			//000000000 11111000
-			// gives
+			// =
 			//000000000 RRRRR000 << 8
 			//RRRRRR000 00000000
 			r16 = (r16 & 0xF8) << 8;
@@ -99,7 +95,7 @@ int pixMap_write_bmp16(pixMap *p,char *filename){
 			//000000000 GGGGGGgg
 			//&
 			//00000000 11111100
-			//gives
+			//=
 			//00000000 GGGGGG00 << 3
 			//00000GGG GGG00000
       g16 = (g16 & 0xFC) << 3;
@@ -107,7 +103,7 @@ int pixMap_write_bmp16(pixMap *p,char *filename){
 			//00000000 BBBBBbbb
 			//&
 			//00000000 11111000
-			//gives
+			//=
 			//00000000 BBBBB000 >> 3
 			//00000000 000BBBBB
       b16 = (b16 & 0xF8) >> 3;
@@ -199,9 +195,6 @@ static void rotate(pixMap *p, pixMap *oldPixMap,int i, int j,void *data){
 }
 
 static void convolution(pixMap *p, pixMap *oldPixMap,int i, int j,void *data){
-	//implement algorithm givne in https://en.wikipedia.org/wiki/Kernel_(imagehttps://s-media-cache-ak0.pinimg.com/736x/e6/67/9f/e6679ff79c8e062ff9cc73dea0a3b67b.jpg_processing)
-	//assume that the kernel is a 3x3 matrix of integers
-	//don't forget to normalize by dividing by the sum of all the elements in the matrix
 	int (*kernel)[3] = (int(*)[3]) data;
 	int redacc = 0; //acccumulators
 	int greenacc = 0;
@@ -222,18 +215,29 @@ static void convolution(pixMap *p, pixMap *oldPixMap,int i, int j,void *data){
 				if (j <= 1) tmpj = 2 + (l - 1);
 				if (j >= oldPixMap->imageWidth - 1) tmpj = (oldPixMap->imageWidth - 2) + (l - 1);
 			}
-			redacc += ((unsigned char) (kernel[k][l]) * (oldPixMap->pixArray_overlay[tmpi][tmpj]).r);
-			greenacc += ((unsigned char) (kernel[k][l]) * (oldPixMap->pixArray_overlay[tmpi][tmpj]).g);
-			blueacc += ((unsigned char) (kernel[k][l]) * (oldPixMap->pixArray_overlay[tmpi][tmpj]).b);
-			alphaacc += ((unsigned char) (kernel[k][l]) * (oldPixMap->pixArray_overlay[tmpi][tmpj]).a);
+
+			rgba tmppix = (oldPixMap->pixArray_overlay[tmpi][tmpj]);
+			redacc += (kernel[k][l] * (unsigned int) (tmppix.r));
+			greenacc += (kernel[k][l] * (unsigned int) (tmppix.g));
+			blueacc += (kernel[k][l] * (unsigned int) (tmppix.b));
+			alphaacc += (kernel[k][l] * (unsigned int) (tmppix.a));
 		} // end inner kernel for
 	} // end outer kernel for
-	if (sum > 1) { // normalize if the kernel elements add to more than 1
-		redacc = redacc / sum;
-		greenacc = greenacc / sum;
-		blueacc =  blueacc / sum;
-		alphaacc = alphaacc / sum;
+
+
+	if (redacc <= 0) redacc = abs(redacc);
+	if (greenacc <= 0) greenacc = abs(greenacc);
+	if (blueacc <= 0) blueacc = abs(blueacc);
+	if (alphaacc <= 0) alphaacc += 255;
+
+	// normalize if the kernel elements add to more than 0
+	if (sum != 0) {
+		redacc /= sum;
+		greenacc /= sum;
+		blueacc  /= sum;
+		alphaacc /= sum;
 	}
+
 	p->pixArray_overlay[i][j].r = redacc;
 	p->pixArray_overlay[i][j].g = greenacc;
 	p->pixArray_overlay[i][j].b = blueacc;
