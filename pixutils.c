@@ -176,22 +176,23 @@ static void convolution(pixMap *p, pixMap *oldPixMap,int i, int j,void *data){
 	int alphaacc = 0;
 
 	int sum = 0;
+	int tmpi, tmpj;
 	for (int k = 0; k < 3; k++) {
 		for (int l = 0; l < 3; l++) {
 			sum += kernel[k][l];
 			if (i > 1 && i < oldPixMap->imageHeight - 1 && j > 1 && j < oldPixMap->imageWidth - 1) {
-				i = i + (k - 1);
-				j = j + (l - 1);
+				tmpi = i + (k - 1);
+				tmpj = j + (l - 1);
 			} else {
-				if (i <= 1) i = i + 2 + (k - 1);
-				if (i >= oldPixMap->imageHeight - 1) i = (oldPixMap->imageHeight - 2) + (k - 1);
-				if (j <= 1) j = j + 2 + (l - 1);
-				if (j >= oldPixMap->imageWidth - 1) j = (oldPixMap->imageWidth - 2) + (l - 1);
+				if (i <= 1) tmpi =  2 + (k - 1);
+				if (i >= oldPixMap->imageHeight - 1) tmpi = (oldPixMap->imageHeight - 2) + (k - 1);
+				if (j <= 1) tmpj = 2 + (l - 1);
+				if (j >= oldPixMap->imageWidth - 1) tmpj = (oldPixMap->imageWidth - 2) + (l - 1);
 			}
-			redacc += (kernel[k][l] * (unsigned int) (oldPixMap->pixArray_overlay[i][j]).r);
-			greenacc += (kernel[k][l] * (unsigned int) (oldPixMap->pixArray_overlay[i][j]).g);
-			blueacc += (kernel[k][l] * (unsigned int) (oldPixMap->pixArray_overlay[i][j]).b);
-			alphaacc += (kernel[k][l] * (unsigned int) (oldPixMap->pixArray_overlay[i][j]).a);
+			redacc += ((unsigned char) (kernel[k][l]) * (oldPixMap->pixArray_overlay[tmpi][tmpj]).r);
+			greenacc += ((unsigned char) (kernel[k][l]) * (oldPixMap->pixArray_overlay[tmpi][tmpj]).g);
+			blueacc += ((unsigned char) (kernel[k][l]) * (oldPixMap->pixArray_overlay[tmpi][tmpj]).b);
+			alphaacc += ((unsigned char) (kernel[k][l]) * (oldPixMap->pixArray_overlay[tmpi][tmpj]).a);
 		} // end inner kernel for
 	} // end outer kernel for
 	if (sum > 1) { // normalize if the kernel elements add to more than 1
