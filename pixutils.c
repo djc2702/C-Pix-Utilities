@@ -201,23 +201,23 @@ static void convolution(pixMap *p, pixMap *oldPixMap,int i, int j,void *data){
 	int blueacc = 0;
 	int alphaacc = 0;
 
-	int sum = 0;
-	int tmpi, tmpj;
-	for (int k = 0; k < 3; k++) {
-		for (int l = 0; l < 3; l++) {
-			sum += kernel[k][l];
+	int sum = 0; // store sum for normalizing
+	int tmpi, tmpj; // helper vars
+	for (int k = 0; k < 3; k++) { // for every row in kernel
+		for (int l = 0; l < 3; l++) { // for every element in each row
+			sum += kernel[k][l]; // add value to sum
 			if (i > 1 && i < oldPixMap->imageHeight - 1 && j > 1 && j < oldPixMap->imageWidth - 1) {
-				tmpi = i + (k - 1);
+				tmpi = i + (k - 1); // assign values to tmp vars
 				tmpj = j + (l - 1);
-			} else {
+			} else { // deal with edge cases
 				if (i <= 1) tmpi =  2 + (k - 1);
 				if (i >= oldPixMap->imageHeight - 1) tmpi = (oldPixMap->imageHeight - 2) + (k - 1);
 				if (j <= 1) tmpj = 2 + (l - 1);
 				if (j >= oldPixMap->imageWidth - 1) tmpj = (oldPixMap->imageWidth - 2) + (l - 1);
 			}
 
-			rgba tmppix = (oldPixMap->pixArray_overlay[tmpi][tmpj]);
-			redacc += (kernel[k][l] * (unsigned int) (tmppix.r));
+			rgba tmppix = (oldPixMap->pixArray_overlay[tmpi][tmpj]); // helper variable to save typing
+			redacc += (kernel[k][l] * (unsigned int) (tmppix.r)); // add convolved rgba values to their accumulators
 			greenacc += (kernel[k][l] * (unsigned int) (tmppix.g));
 			blueacc += (kernel[k][l] * (unsigned int) (tmppix.b));
 			alphaacc += (kernel[k][l] * (unsigned int) (tmppix.a));
@@ -232,6 +232,7 @@ static void convolution(pixMap *p, pixMap *oldPixMap,int i, int j,void *data){
 		alphaacc /= sum;
 	}
 
+  // deal with clipping
 	if (redacc <= 0) redacc = 0;
 	if (greenacc <= 0) greenacc = 0;
 	if (blueacc <= 0) blueacc = 0;
@@ -240,6 +241,7 @@ static void convolution(pixMap *p, pixMap *oldPixMap,int i, int j,void *data){
 	if (greenacc > 255) greenacc = 255;
 	if (blueacc > 255) blueacc = 255;
 
+  // push the accumulator values to their corresponding places in the pixarray
 	p->pixArray_overlay[i][j].r = redacc;
 	p->pixArray_overlay[i][j].g = greenacc;
 	p->pixArray_overlay[i][j].b = blueacc;
