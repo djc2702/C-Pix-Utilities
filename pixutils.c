@@ -224,12 +224,6 @@ static void convolution(pixMap *p, pixMap *oldPixMap,int i, int j,void *data){
 		} // end inner kernel for
 	} // end outer kernel for
 
-
-	if (redacc <= 0) redacc = abs(redacc);
-	if (greenacc <= 0) greenacc = abs(greenacc);
-	if (blueacc <= 0) blueacc = abs(blueacc);
-	if (alphaacc <= 0) alphaacc += 255;
-
 	// normalize if the kernel elements add to more than 0
 	if (sum != 0) {
 		redacc /= sum;
@@ -237,6 +231,14 @@ static void convolution(pixMap *p, pixMap *oldPixMap,int i, int j,void *data){
 		blueacc  /= sum;
 		alphaacc /= sum;
 	}
+
+	if (redacc <= 0) redacc = 0;
+	if (greenacc <= 0) greenacc = 0;
+	if (blueacc <= 0) blueacc = 0;
+	if (alphaacc <= 0) alphaacc += 255;
+	if (redacc > 255) redacc = 255;
+	if (greenacc > 255) greenacc = 255;
+	if (blueacc > 255) blueacc = 255;
 
 	p->pixArray_overlay[i][j].r = redacc;
 	p->pixArray_overlay[i][j].g = greenacc;
